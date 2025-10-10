@@ -3,6 +3,30 @@ provider "google" {
   region  = var.gcp_region
 }
 
+# 사용자 계정 생성 및 권한 추가
+resource "google_service_account" "terraform" {
+  account_id   = "terraform-sa"
+  display_name = "Terraform Service Account"
+}
+
+resource "google_project_iam_member" "compute_admin" {
+  project = var.gcp_project
+  role    = "roles/compute.admin"
+  member  = "serviceAccount:${google_service_account.terraform.email}"
+}
+
+resource "google_project_iam_member" "storage_admin" {
+  project = var.gcp_project
+  role    = "roles/storage.admin"
+  member  = "serviceAccount:${google_service_account.terraform.email}"
+}
+
+resource "google_project_iam_member" "sa_user" {
+  project = var.gcp_project
+  role    = "roles/iam.serviceAccountUser"
+  member  = "serviceAccount:${google_service_account.terraform.email}"
+}
+
 # Jenkins Agent Server(Junit 테스트 필요)
 resource "google_compute_instance" "jenkins_agent" {
   name         = "jenkins-agent"
