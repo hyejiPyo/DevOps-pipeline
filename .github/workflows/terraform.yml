@@ -5,12 +5,16 @@ on:
     branches:
       - main
     paths:
-      - '**.tf'
-      - '**/terraform.*'
+      - 'aws/**/*.tf'
+      - 'aws/**/terraform.*'
+      - 'gcp/**/*.tf'
+      - 'gcp/**/terraform.*'
   pull_request:
     paths:
-      - '**.tf'
-      - '**/terraform.*'
+      - 'aws/**/*.tf'
+      - 'aws/**/terraform.*'
+      - 'gcp/**/*.tf'
+      - 'gcp/**/terraform.*'
 
       
 jobs:
