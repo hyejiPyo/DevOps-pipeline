@@ -27,41 +27,6 @@ resource "google_project_iam_member" "sa_user" {
   member  = "serviceAccount:${google_service_account.terraform.email}"
 }
 
-# Jenkins Agent Server(Junit 테스트 필요)
-resource "google_compute_instance" "jenkins_agent" {
-  name         = "jenkins-agent"
-  machine_type = var.gcp_machine_type
-  zone         = var.gcp_zone
-
-  boot_disk {
-    initialize_params {
-      image = var.gcp_image
-    }
-  }
-
-  metadata = {
-    ssh-keys = var.gcp_metadata_ssh_keys
-    user-data = <<-EOF
-      #!/bin/bash
-      sudo apt-get update
-      sudo apt-get install -y docker.io
-      sudo systemctl enable docker
-      sudo systemctl start docker
-      curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
-      chmod +x kubectl
-      sudo mv kubectl /usr/local/bin/
-    EOF
-  }
-
-  network_interface {
-    network    = var.gcp_network_self_link
-    subnetwork = var.gcp_subnet_self_link
-    access_config {}
-  }
-
-  tags = ["jenkins-agent"]
-}
-
 # Jenkins Server(CI)
 resource "google_compute_instance" "jenkins_server" {
   name         = "jenkins-server"
@@ -75,7 +40,7 @@ resource "google_compute_instance" "jenkins_server" {
   }
 
   metadata = {
-    ssh-keys = var.gcp_metadata_ssh_keys
+    ssh-keys = "${var.gcp_ssh_user}:${var.gcp_ssh_pubkey} ${var.gcp_ssh_user}"
     user-data = <<-EOF
       #!/bin/bash
       sudo apt-get update
@@ -98,11 +63,39 @@ resource "google_compute_instance" "jenkins_server" {
   tags = ["jenkins-server"]
 }
 
+resource "google_compute_instance" "jenkins_agent" {
+  name         = "jenkins-agent"
+  machine_type = var.gcp_machine_type
+  zone         = var.gcp_zone
+
+  boot_disk {
+    initialize_params {
+      image = var.gcp_image
+    }
+  }
+
+  metadata = {
+    ssh-keys = "${var.gcp_ssh_user}:${var.gcp_ssh_pubkey} ${var.gcp_ssh_user}"
+    user-data = <<-EOF
+      #!/bin/bash
+      sudo apt-get update
+      sudo apt-get install -y docker.io
+      sudo systemctl enable docker
+      sudo systemctl start docker
+      curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+      chmod +x kubectl
+      sudo mv kubectl /usr/local/bin/
+    EOF
+  }
+
   network_interface {
     network    = var.gcp_network_self_link
     subnetwork = var.gcp_subnet_self_link
     access_config {}
   }
+
+  tags = ["jenkins-agent"]
+}
 
 resource "google_compute_firewall" "default" {
   name    = "default-firewall"
