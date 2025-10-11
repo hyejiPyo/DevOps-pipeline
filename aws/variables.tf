@@ -21,11 +21,6 @@ variable "instance_type" {
   default = "t3.medium"
 }
 
-variable "vpc_id" {
-  description = "AWS VPC"
-  type = string
-  default = "vpc-08289defd1ea10e6f"
-}
 
 variable "subnet_id" {
   description = "AWS Subnet"
