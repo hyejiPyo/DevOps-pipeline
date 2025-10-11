@@ -120,3 +120,19 @@ resource "aws_instance" "prometheus" {
   }
 }
 
+# Elastic IPs for each server
+resource "aws_eip" "jenkins_server_eip" {
+  instance = aws_instance.jenkins_server.id
+  vpc      = true
+}
+
+resource "aws_eip" "jenkins_agent_eip" {
+  instance = aws_instance.jenkins_agent.id
+  vpc      = true
+}
+
+resource "aws_eip" "prometheus_eip" {
+  instance = aws_instance.prometheus.id
+  vpc      = true
+}
+
