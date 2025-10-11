@@ -18,7 +18,7 @@ data "aws_vpc" "default" {
 data "aws_subnet" "default" {
     filter{
         name = "vpc-id"
-        values = "subnet-075de9772da50ef19"
+        id = "subnet-075de9772da50ef19"
     }
 }
 
