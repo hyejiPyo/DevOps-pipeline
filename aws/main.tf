@@ -5,7 +5,7 @@ provider "aws" {
 resource "aws_security_group" "default" {
   name        = "jenkind-cd-sg"
   description = "jenkins-sg"
-  vpc_id      = var.vpc_id
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port   = 22
