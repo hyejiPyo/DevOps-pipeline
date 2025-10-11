@@ -15,6 +15,13 @@ resource "aws_security_group" "default" {
   }
 
   ingress {
+    from_port   = 43
+    to_port     = 43
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -43,6 +50,7 @@ resource "aws_security_group" "default" {
   }
 }
 
+# jenkins server(CD)
 resource "aws_instance" "jenkins_server" {
   ami           = data.aws_ssm_parameter.amazon_linux_2.value
   instance_type = var.instance_type
@@ -67,6 +75,7 @@ resource "aws_instance" "jenkins_server" {
   }
 }
 
+# jenkins agent server
 resource "aws_instance" "jenkins_agent" {
   ami           = data.aws_ssm_parameter.amazon_linux_2.value
   instance_type = var.instance_type
@@ -90,6 +99,7 @@ resource "aws_instance" "jenkins_agent" {
   }
 }
 
+# prometheus server
 resource "aws_instance" "prometheus" {
   ami           = data.aws_ssm_parameter.amazon_linux_2.value
   instance_type = var.instance_type
