@@ -55,8 +55,8 @@ resource "google_compute_instance" "jenkins_server" {
   }
 
   network_interface {
-    network    = var.gcp_network_self_link
-    subnetwork = var.gcp_subnet_self_link
+    network    = local.network_self_link
+    subnetwork = local.subnet_self_link
     access_config {}
   }
 
@@ -89,8 +89,8 @@ resource "google_compute_instance" "jenkins_agent" {
   }
 
   network_interface {
-    network    = var.gcp_network_self_link
-    subnetwork = var.gcp_subnet_self_link
+    network    = local.network_self_link
+    subnetwork = local.subnet_self_link
     access_config {}
   }
 
@@ -99,7 +99,7 @@ resource "google_compute_instance" "jenkins_agent" {
 
 resource "google_compute_firewall" "default" {
   name    = "default-firewall"
-  network = var.gcp_network_self_link
+  network = local.network_self_link
 
   allow {
     protocol = "tcp"
