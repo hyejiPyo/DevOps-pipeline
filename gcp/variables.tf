@@ -40,3 +40,20 @@ variable "use_existing_subnet" {
   type = bool
   default = false
 }
+
+variable "gcp_machine_type" {
+  description = "GCP 인스턴스 타입"
+  type        = string
+  default     = "e2-medium"
+}
+
+variable "gcp_image" {
+  description = "GCP 인스턴스 이미지"
+  type        = string
+  default     = "ubuntu-os-cloud/ubuntu-2204-lts"
+}
+
+variable "gcp_ssh_pubkey" {
+  description = "GCP 인스턴스 SSH 공개키"
+  type        = string
+}
