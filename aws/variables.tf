@@ -26,4 +26,5 @@ variable "vpc_id" {
 variable "subnet_id" {
   description = "AWS Subnet"
   type = string
+  default = "subnet-075de9772da50ef19"
 }
