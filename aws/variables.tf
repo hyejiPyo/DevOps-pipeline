@@ -1,3 +1,8 @@
+variable "vpc_id" {
+  description = "배포할 VPC의 ID"
+  type        = string
+  default     = "vpc-08289defd1ea10e6f"
+}
 variable "aws_region" {
   description = "AWS 리전"
   type        = string
