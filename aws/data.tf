@@ -16,9 +16,7 @@ data "aws_vpc" "default" {
 
 # AWS 기존 Subnet 참조
 data "aws_subnet" "default" {
-    filter{
-        name = "vpc-id"
-        id = "subnet-075de9772da50ef19"
-    }
+  
+    id = "subnet-075de9772da50ef19"
 }
 
