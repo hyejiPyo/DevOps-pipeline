@@ -1,6 +1,7 @@
 variable "gcp_project" {
   description = "DevOps"
   type        = string
+  default = "devops-474701"
 }
 
 variable "gcp_region" {

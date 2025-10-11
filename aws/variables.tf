@@ -21,6 +21,7 @@ variable "instance_type" {
 variable "vpc_id" {
   description = "AWS VPC"
   type = string
+  default = "vpc-08289defd1ea10e6f"
 }
 
 variable "subnet_id" {
