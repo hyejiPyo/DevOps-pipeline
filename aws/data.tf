@@ -9,10 +9,6 @@ data "aws_ssm_parameter" "amazon_linux_2" {
 }
 
 # AWS 기존 VPC 참조
-data "aws_vpc" "default" {
-    default = true
-    id = "vpc-08289defd1ea10e6f"
-}
 
 # AWS 기존 Subnet 참조
 data "aws_subnet" "default" {
