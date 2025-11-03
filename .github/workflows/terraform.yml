@@ -33,12 +33,10 @@ jobs:
         with:
           terraform_version: 1.10.5
 
-      - name: Run tfsec (IaC security scan)
-        uses: aquasecurity/tfsec-action@v1
-        with:
-          directory: aws
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install and run tfsec (IaC security scan)
+        run: |
+          curl -sSL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install.sh | bash
+          tfsec ./aws
 
       - name: Terraform Init
         run: terraform -chdir=aws init
