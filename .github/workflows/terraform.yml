@@ -33,10 +33,9 @@ jobs:
         with:
           terraform_version: 1.10.5
 
-      - name: Install and run tfsec (IaC security scan)
+      - name: Run tfsec via Docker (static scan without installing)
         run: |
-          curl -sSL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install.sh | bash
-          tfsec ./aws
+          docker run --rm -v "${{ github.workspace }}/aws":/src aquasecurity/tfsec:latest /src --format sarif --out /src/tfsec.sarif
 
       - name: Terraform Init
         run: terraform -chdir=aws init
