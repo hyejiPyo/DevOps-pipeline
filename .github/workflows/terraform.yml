@@ -7,16 +7,11 @@ on:
     paths:
       - 'aws/**/*.tf'
       - 'aws/**/terraform.*'
-      - 'gcp/**/*.tf'
-      - 'gcp/**/terraform.*'
   pull_request:
     paths:
       - 'aws/**/*.tf'
       - 'aws/**/terraform.*'
-      - 'gcp/**/*.tf'
-      - 'gcp/**/terraform.*'
 
-      
 jobs:
   terraform:
     name: Terraform Apply
@@ -36,6 +31,13 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.10.5
+
+      - name: Run tfsec (IaC security scan)
+        uses: aquasecurity/tfsec-action@v1
+        with:
+          directory: aws
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Terraform Init
         run: terraform -chdir=aws init
