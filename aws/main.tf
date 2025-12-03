@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_security_group" "default" {
-  name        = "jenkind-cd-sg"
+  name        = "jenkind-ci-sg"
   description = "jenkins-sg"
   vpc_id      = var.vpc_id
 
@@ -50,24 +50,36 @@ resource "aws_security_group" "default" {
   }
 }
 
-# jenkins server(CD)
+# jenkins server
 resource "aws_instance" "jenkins_server" {
   ami           = data.aws_ssm_parameter.amazon_linux_2.value
   instance_type = var.instance_type
   key_name      = var.aws_key_name
   subnet_id     = var.subnet_id
   vpc_security_group_ids = [aws_security_group.default.id]
+  iam_instance_profile   = aws_iam_instance_profile.jenkins_server_profile.name
 
   user_data = <<-EOF
     #!/bin/bash
-    sudo apt-get update
-    sudo apt-get install -y openjdk-11-jdk
-    wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
-    sudo sh -c 'echo deb https://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
-    sudo apt-get update
-    sudo apt-get install -y jenkins
-    sudo systemctl enable jenkins
-    sudo systemctl start jenkins
+    # Install Docker
+    sudo yum update -y
+    sudo yum install -y docker
+    sudo systemctl start docker
+    sudo systemctl enable docker
+    sudo usermod -aG docker ec2-user
+    
+    # Run Jenkins as Docker container
+    sudo docker run -d \
+      --name jenkins \
+      -p 8080:8080 \
+      -p 50000:50000 \
+      -v jenkins_home:/var/jenkins_home \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      --restart=unless-stopped \
+      jenkins/jenkins:lts
+    
+    # Install Docker CLI in Jenkins container
+    sudo docker exec jenkins sh -c "curl -fsSL https://get.docker.com | sh" || true
   EOF
 
   tags = {
@@ -82,41 +94,32 @@ resource "aws_instance" "jenkins_agent" {
   key_name      = var.aws_key_name
   subnet_id     = var.subnet_id
   vpc_security_group_ids = [aws_security_group.default.id]
+  iam_instance_profile   = aws_iam_instance_profile.jenkins_agent_profile.name
 
   user_data = <<-EOF
     #!/bin/bash
-    sudo apt-get update
-    sudo apt-get install -y docker.io
-    sudo systemctl enable docker
+    # Install Docker
+    sudo yum update -y
+    sudo yum install -y docker
     sudo systemctl start docker
+    sudo systemctl enable docker
+    sudo usermod -aG docker ec2-user
+    
+    # Install kubectl
     curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
     chmod +x kubectl
     sudo mv kubectl /usr/local/bin/
+    
+    # Install Docker Compose
+    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+    
+    # Install Java for Jenkins agent
+    sudo yum install -y java-11-amazon-corretto
   EOF
 
   tags = {
     Name = "jenkins-agent"
-  }
-}
-
-# prometheus server
-resource "aws_instance" "prometheus" {
-  ami           = data.aws_ssm_parameter.amazon_linux_2.value
-  instance_type = var.instance_type
-  key_name      = var.aws_key_name
-  subnet_id     = var.subnet_id
-  vpc_security_group_ids = [aws_security_group.default.id]
-
-  user_data = <<-EOF
-    #!/bin/bash
-    sudo apt-get update
-    sudo apt-get install -y prometheus
-    sudo systemctl enable prometheus
-    sudo systemctl start prometheus
-  EOF
-
-  tags = {
-    Name = "prometheus-server"
   }
 }
 
@@ -127,9 +130,5 @@ resource "aws_eip" "jenkins_server_eip" {
 
 resource "aws_eip" "jenkins_agent_eip" {
   instance = aws_instance.jenkins_agent.id
-}
-
-resource "aws_eip" "prometheus_eip" {
-  instance = aws_instance.prometheus.id
 }
 

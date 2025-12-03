@@ -1,4 +1,4 @@
-name: Terraform Deploy (GCP + AWS)
+name: Terraform Deploy (Multi-Cloud)
 
 on:
   push:
@@ -14,8 +14,8 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  terraform:
-    name: Terraform Apply
+  terraform-aws:
+    name: Terraform Apply (AWS)
     runs-on: ubuntu-latest
 
     env:
@@ -45,3 +45,38 @@ jobs:
 
       - name: Terraform Apply
         run: terraform -chdir=aws apply -auto-approve
+
+  terraform-gcp:
+    name: Terraform Apply (GCP)
+    runs-on: ubuntu-latest
+
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+      TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: Run tfsec via Docker (static scan without installing)
+        run: |
+          docker run --rm -v "${{ github.workspace }}/gcp":/src aquasecurity/tfsec:latest /src --format sarif --out /src/tfsec.sarif
+
+      - name: Terraform Init
+        run: terraform -chdir=gcp init
+
+      - name: Terraform Plan
+        run: terraform -chdir=gcp plan
+
+      - name: Terraform Apply
+        run: terraform -chdir=gcp apply -auto-approve
