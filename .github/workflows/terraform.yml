@@ -33,9 +33,13 @@ jobs:
         with:
           terraform_version: 1.10.5
 
-      - name: Run tfsec via Docker (static scan without installing)
-        run: |
-          docker run --rm -v "${{ github.workspace }}/aws":/src aquasecurity/tfsec:latest /src --format sarif --out /src/tfsec.sarif
+      - name: Run Trivy security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'aws/'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
 
       - name: Terraform Init
         run: terraform -chdir=aws init
@@ -68,9 +72,13 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
-      - name: Run tfsec via Docker (static scan without installing)
-        run: |
-          docker run --rm -v "${{ github.workspace }}/gcp":/src aquasecurity/tfsec:latest /src --format sarif --out /src/tfsec.sarif
+      - name: Run Trivy security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'gcp/'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
 
       - name: Terraform Init
         run: terraform -chdir=gcp init
